@@ -1,53 +1,41 @@
 import argparse
 import csv
 import random
+import json
 from faker import Faker
 
 fake = Faker()
 
-# Define schemas for each table
-# For other/future tables can just add here following similar format
-table_schemas = {
-    'db_infos': {
-        'id': lambda: random.randint(1000, 9999),
-        'created_at': lambda: fake.date_time_between(start_date='-2y', end_date='now'),
-        'updated_at': lambda: fake.date_time_between(start_date='-2y', end_date='now'),
-        'deleted_at': lambda: fake.date_time_between(start_date='-2y', end_date='now') if random.choice([True, False]) else None,
-        'version': lambda: random.randint(1, 100),
-        'status': lambda: fake.word(ext_word_list=["active", "inactive", "pending"])
-    }
-    # You can add more tables here with a similar structure
+# Mapping field types from JSON to corresponding Faker functions
+fake_functions = {
+    'int': lambda: random.randint(1000, 9999),
+    'datetime': lambda: fake.date_time_between(start_date='-2y', end_date='now'),
+    'nullable_datetime': lambda: fake.date_time_between(start_date='-2y', end_date='now') if random.choice(
+        [True, False]) else None,
+    'version': lambda: random.randint(1, 100),
+    'status': lambda: fake.word(ext_word_list=["active", "inactive", "pending"]),
+    'name': lambda: fake.name(),
+    'email': lambda: fake.email(),
+    'word': lambda: fake.word(),
+    'address': lambda: fake.address()
 }
 
-# List of available tables
-table_names = list(table_schemas.keys())
 
-# Function to display the tables and let the user select one
-def select_table():
-    print("Select a table to generate data for:")
-    for i, table in enumerate(table_names):
-        print(f"{i + 1}. {table}")
-
-    while True:
-        try:
-            choice = int(input("Enter the number of the table: ")) - 1
-            if 0 <= choice < len(table_names):
-                return table_names[choice]
-            else:
-                print("Invalid selection. Please try again.")
-        except ValueError:
-            print("Please enter a valid number.")
-
-# Function to generate data based on selected table schema
-def generate_data(table_name, num_records):
-    schema = table_schemas[table_name]
+# Function to generate data based on the JSON schema
+def generate_data(schema, num_records):
     data = []
 
     for _ in range(num_records):
-        row = {column: generator() for column, generator in schema.items()}
+        row = {}
+        for column, field_type in schema.items():
+            if field_type in fake_functions:
+                row[column] = fake_functions[field_type]()
+            else:
+                raise ValueError(f"Unknown field type '{field_type}' in schema for column '{column}'")
         data.append(row)
 
     return data
+
 
 # Function to save generated data to a CSV file
 def save_to_csv(data, output_file):
@@ -62,22 +50,41 @@ def save_to_csv(data, output_file):
     else:
         print("No data to save.")
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Generate fake data for a table and save to CSV.")
+    parser = argparse.ArgumentParser(description="Generate fake data from a JSON schema and save to CSV.")
+    parser.add_argument('schema', type=str, help='Path to the JSON schema file')
     parser.add_argument('output', type=str, help='The output CSV file name')
     args = parser.parse_args()
 
-    # Step 1: Select a table
-    table_name = select_table()
+    # Load schema from JSON file
+    try:
+        with open(args.schema, 'r') as file:
+            schema = json.load(file)
+    except FileNotFoundError:
+        print(f"Error: File '{args.schema}' not found.")
+        return
+    except json.JSONDecodeError:
+        print(f"Error: File '{args.schema}' is not a valid JSON file.")
+        return
 
-    # Step 2: Ask how many records the user wants
-    num_records = int(input(f"How many records do you want to generate for {table_name}? "))
+    # Ask how many records the user wants
+    try:
+        num_records = int(input(f"How many records do you want to generate? "))
+    except ValueError:
+        print("Please enter a valid number.")
+        return
 
-    # Step 3: Generate data
-    data = generate_data(table_name, num_records)
+    # Generate data based on the schema
+    try:
+        data = generate_data(schema, num_records)
+    except ValueError as e:
+        print(e)
+        return
 
-    # Step 4: Save the data to CSV
+    # Save the data to CSV
     save_to_csv(data, args.output)
+
 
 if __name__ == "__main__":
     main()
