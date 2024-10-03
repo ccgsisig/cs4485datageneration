@@ -35,21 +35,23 @@ def generate_data(schema, num_records):
 def generate_record(schema):
     row = {}
     for column, field_type in schema.items():
-        if isinstance(field_type,str):  #Checking if field_type is a string
+        if isinstance(field_type, str):  # Check if field_type is a string
             if field_type in fake_functions:
-                row[column] = fake_functions[field_type]()
-            elif field_type == 'dict':  # Nested dictionary
-                row[column] = generate_record(field_type) #Recursive call to generate data for nested dictionary
+                row[column] = fake_functions[field_type]()  
             else:
                 raise ValueError(f"Unknown field type '{field_type}' in schema for column '{column}'")
-        elif isinstance(field_type, list):  #Checking if field_type is a list
+        
+        elif isinstance(field_type, dict):  #dictionary check
+            row[column] = generate_record(field_type)  # Recursive call to generate data for nested dictionary
+
+        elif isinstance(field_type, list):  #list check
             row[column] = []
-            #Generate random number of records for current list
-            for i in range(random.randint(1, 3)):
-                row[column].append(generate_record(field_type[0]))  
+            for _ in range(random.randint(1, 3)):  # Generate a random number of records
+                row[column].append(generate_record(field_type[0]))  # Assume the first item in the list defines the schema
+            
         else:
             raise ValueError(f"Unsupported field type for column '{column}': {field_type}")
-        
+    
     return row
 
 
