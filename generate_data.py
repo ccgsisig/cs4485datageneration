@@ -17,7 +17,8 @@ fake_functions = {
     'name': lambda: fake.name(),
     'email': lambda: fake.email(),
     'word': lambda: fake.word(),
-    'address': lambda: fake.address()
+    'address': lambda: fake.address(),
+    'phone': lambda: fake.phone_number()  
 }
 
 
@@ -26,15 +27,30 @@ def generate_data(schema, num_records):
     data = []
 
     for _ in range(num_records):
-        row = {}
-        for column, field_type in schema.items():
-            if field_type in fake_functions:
-                row[column] = fake_functions[field_type]()
-            else:
-                raise ValueError(f"Unknown field type '{field_type}' in schema for column '{column}'")
+        row = generate_record(schema)
         data.append(row)
 
     return data
+
+def generate_record(schema):
+    row = {}
+    for column, field_type in schema.items():
+        if isinstance(field_type,str):  #Checking if field_type is a string
+            if field_type in fake_functions:
+                row[column] = fake_functions[field_type]()
+            elif field_type == 'dict':  # Nested dictionary
+                row[column] = generate_record(field_type) #Recursive call to generate data for nested dictionary
+            else:
+                raise ValueError(f"Unknown field type '{field_type}' in schema for column '{column}'")
+        elif isinstance(field_type, list):  #Checking if field_type is a list
+            row[column] = []
+            #Generate random number of records for current list
+            for i in range(random.randint(1, 3)):
+                row[column].append(generate_record(field_type[0]))  
+        else:
+            raise ValueError(f"Unsupported field type for column '{column}': {field_type}")
+        
+    return row
 
 
 # Function to save generated data to a CSV file
