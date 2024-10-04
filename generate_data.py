@@ -3,6 +3,7 @@ import csv
 import random
 import json
 from faker import Faker
+import time
 
 fake = Faker()
 
@@ -35,9 +36,9 @@ def generate_data(schema, num_records):
 def generate_record(schema):
     row = {}
     for column, field_type in schema.items():
-        if isinstance(field_type, str):  # Check if field_type is a string
+        if isinstance(field_type, str):
             if field_type in fake_functions:
-                row[column] = fake_functions[field_type]()  
+                row[column] = fake_functions[field_type]()  #Generate data uisng faker functions
             else:
                 raise ValueError(f"Unknown field type '{field_type}' in schema for column '{column}'")
         
@@ -46,8 +47,8 @@ def generate_record(schema):
 
         elif isinstance(field_type, list):  #list check
             row[column] = []
-            for _ in range(random.randint(1, 3)):  # Generate a random number of records
-                row[column].append(generate_record(field_type[0]))  # Assume the first item in the list defines the schema
+            for _ in range(random.randint(1, 3)):  #generate a random number of records
+                row[column].append(generate_record(field_type[0]))  #Assume the first item in the list defines the schema, could change 
             
         else:
             raise ValueError(f"Unsupported field type for column '{column}': {field_type}")
@@ -92,13 +93,24 @@ def main():
     except ValueError:
         print("Please enter a valid number.")
         return
-
-    # Generate data based on the schema
+    
+    # Ask for the time interval in minutes
     try:
-        data = generate_data(schema, num_records)
-    except ValueError as e:
-        print(e)
+        interval = float(input(f"Enter the time interval between each generation (in minutes): ")) * 60  # Convert minutes to seconds
+    except ValueError:
+        print("Please enter a valid time interval.")
         return
+
+    print(f"Generating {num_records} records every {interval / 60} minutes...")
+
+    while True:
+        try:
+            data = generate_data(schema, num_records)
+            save_to_csv(data, args.output)
+            time.sleep(interval)  # Sleep for the specified interval
+        except ValueError as e:
+            print(e)
+            break
 
     # Save the data to CSV
     save_to_csv(data, args.output)
