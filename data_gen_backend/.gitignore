@@ -2,12 +2,12 @@
 venv/
 
 # Ignore Python cache files
-__pycache__/
+app/__pycache__/
 *.pyc
 *.pyo
 
 # Ignore generated CSV files
-*.csv
+generated_files/
 
 # Ignore system files (macOS specific)
 .DS_Store
