@@ -3,18 +3,37 @@ import axios from "axios";
 
 export default function FileUpload() {
   const [file, setFile] = useState(null);
+  const [typedSchema, setTypedSchema] = useState(""); // For user-typed schema
   const [numRecords, setNumRecords] = useState(10); // Default value for number of records
   const [interval, setInterval] = useState(1); // Default value for interval (in minutes)
   const [message, setMessage] = useState("");
   const [filename, setFilename] = useState(""); // To store the output filename
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setTypedSchema(event.target.result); // Store the file content as string
+    };
+    reader.readAsText(selectedFile);
   };
 
-  const handleFileUpload = async () => {
+  const handleFileUploadAndDownload = async () => {
     const formData = new FormData();
-    formData.append("file", file);
+
+    if (typedSchema) {
+      // Prioritize the typed schema if available
+      const blob = new Blob([typedSchema], { type: "application/json" });
+      formData.append("file", blob, "typed_schema.json");
+    } else if (file) {
+      formData.append("file", file); // Use uploaded file if no typed schema
+    } else {
+      setMessage("Please upload or type a schema.");
+      return;
+    }
+
     formData.append("num_records", numRecords); // Send the number of records
     formData.append("interval", interval); // Send the interval (in minutes)
 
@@ -30,13 +49,16 @@ export default function FileUpload() {
       );
       setMessage(response.data.message);
       setFilename(response.data.output_file); // Set the filename for downloading
+
+      // Automatically download the generated CSV
+      await handleDownloadCSV(response.data.output_file);
     } catch (error) {
       setMessage("Error uploading file");
       console.error(error);
     }
   };
 
-  const handleDownloadCSV = async () => {
+  const handleDownloadCSV = async (filename) => {
     if (!filename) {
       setMessage("No file available for download.");
       return;
@@ -64,13 +86,27 @@ export default function FileUpload() {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Upload JSON and Generate CSV</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        Upload JSON or Type Schema and Generate CSV
+      </h1>
 
       <div className="mb-4">
         <input
           type="file"
           onChange={handleFileChange}
           className="border rounded-lg p-2"
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block font-medium">
+          Or Type Your JSON Schema (typed JSON will take priority):
+        </label>
+        <textarea
+          value={typedSchema}
+          onChange={(e) => setTypedSchema(e.target.value)}
+          className="w-full h-40 border rounded-lg p-2"
+          placeholder="Enter your JSON schema here"
         />
       </div>
 
@@ -95,17 +131,10 @@ export default function FileUpload() {
       </div>
 
       <button
-        onClick={handleFileUpload}
-        className="bg-blue-500 text-white rounded-lg px-4 py-2 mr-2 hover:bg-blue-600"
+        onClick={handleFileUploadAndDownload}
+        className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
       >
-        Upload and Generate
-      </button>
-
-      <button
-        onClick={handleDownloadCSV}
-        className="bg-green-500 text-white rounded-lg px-4 py-2 hover:bg-green-600"
-      >
-        Download CSV
+        Generate and Download CSV
       </button>
 
       <p className="mt-4 text-red-500">{message}</p>

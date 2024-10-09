@@ -13,10 +13,10 @@ fake = Faker()
 
 app = FastAPI()
 
-# Enable CORS for development
+#CORS (Cross origin resource sharing) middleware to allow requests from the react app
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # React app origin
+    allow_origins=["http://localhost:5173"],  #react app origin
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,7 +35,7 @@ fake_functions = {
     'phone': lambda: fake.phone_number()
 }
 
-# Function to generate data based on the JSON schema
+#Function used to generate data based on the JSON schema
 def generate_data(schema, num_records):
     data = []
     for _ in range(num_records):
@@ -83,27 +83,27 @@ async def generate_csv(file: UploadFile = File(...), num_records: int = Form(...
     except json.JSONDecodeError:
         return {"error": "Invalid JSON file."}
 
-    # Make sure the directory exists
+    #Check thatdirectory exists
     os.makedirs('generated_files', exist_ok=True)
 
-    # Use a clear naming convention for the generated CSV file
+    #Naming convention for the generated CSV file
     original_filename = file.filename.split('.')[0]  # Get the base name without extension
     output_file = f"generated_files/{original_filename}_generated.csv"
-    interval_seconds = interval * 60  # Convert minutes to seconds
+    interval_seconds = interval * 60  #minutes to seconds
 
-    # Start continuous generation in a background thread
+    #Start continuous generation in a background thread
     thread = Thread(target=continuous_generation, args=(schema, num_records, interval_seconds, output_file))
     thread.start()
 
     return {
         "message": "CSV generation started!",
-        "output_file": output_file.split('/')[-1]  # Just send the filename part
+        "output_file": output_file.split('/')[-1]  #only send the filename 
     }
 
 
 @app.get("/download_csv/")
 async def download_csv(filename: str):
-    file_path = f"generated_files/{filename}"  # Ensure this path is correct
+    file_path = f"generated_files/{filename}" 
     if os.path.exists(file_path):
         return FileResponse(file_path, media_type='text/csv', filename=filename)
     return {"error": "File not found."}
