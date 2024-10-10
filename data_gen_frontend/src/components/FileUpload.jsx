@@ -8,6 +8,7 @@ export default function FileUpload() {
   const [interval, setInterval] = useState(1); // Default value for interval (in minutes)
   const [message, setMessage] = useState("");
   const [filename, setFilename] = useState(""); // To store the output filename
+  const [mode, setMode] = useState("batch"); //Default is batch, this is for updating which data generation mode we want
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -36,6 +37,7 @@ export default function FileUpload() {
 
     formData.append("num_records", numRecords); // Send the number of records
     formData.append("interval", interval); // Send the interval (in minutes)
+    formData.append("mode", mode); // Send the mode (batch or stream)
 
     try {
       const response = await axios.post(
@@ -96,6 +98,18 @@ export default function FileUpload() {
           onChange={handleFileChange}
           className="border rounded-lg p-2"
         />
+      </div>
+
+      <div className="mb-4">
+        <label className="block font-medium">Mode:</label>
+        <select
+          value={mode}
+          onChange={(e) => setMode(e.target.value)}
+          className="border rounded-lg p-2"
+        >
+          <option value="batch">Batch</option>
+          <option value="stream">Stream</option>
+        </select>
       </div>
 
       <div className="mb-4">

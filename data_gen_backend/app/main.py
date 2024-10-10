@@ -76,7 +76,7 @@ def continuous_generation(schema, num_records, interval, output_file):
         time.sleep(interval)
 
 @app.post("/generate-csv")
-async def generate_csv(file: UploadFile = File(...), num_records: int = Form(...), interval: float = Form(...)):
+async def generate_csv(file: UploadFile = File(...), num_records: int = Form(...), interval: float = Form(...), mode: str = Form(...)):
     schema_data = await file.read()
     try:
         schema = json.loads(schema_data)
@@ -91,14 +91,23 @@ async def generate_csv(file: UploadFile = File(...), num_records: int = Form(...
     output_file = f"generated_files/{original_filename}_generated.csv"
     interval_seconds = interval * 60  #minutes to seconds
 
-    #Start continuous generation in a background thread
-    thread = Thread(target=continuous_generation, args=(schema, num_records, interval_seconds, output_file))
-    thread.start()
-
-    return {
-        "message": "CSV generation started!",
-        "output_file": output_file.split('/')[-1]  #only send the filename 
-    }
+    if mode == "stream":
+        # Start continuous generation in a background thread
+        thread = Thread(target=continuous_generation, args=(schema, num_records, interval_seconds, output_file))
+        thread.start()
+        return {
+            "message": "CSV generation started in streaming mode!",
+            "output_file": output_file.split('/')[-1]  # Only send the filename
+        }
+    elif mode == "batch":
+        data = generate_data(schema, num_records)  # Generate data immediately
+        save_to_csv(data, output_file)
+        return {
+            "message": "CSV generated successfully!",
+            "output_file": output_file.split('/')[-1]  # Only send the filename
+        }
+    else:
+        return {"error": "Invalid mode. Use 'batch' or 'stream'."}
 
 
 @app.get("/download_csv/")
