@@ -1,0 +1,10 @@
+{
+  "employee": {
+    "name": "name",
+    "id": "int",
+    "department": {
+      "name": "word",
+      "location": "word"
+    }
+  }
+}
