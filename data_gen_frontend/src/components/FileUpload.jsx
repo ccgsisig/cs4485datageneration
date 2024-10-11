@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import Papa from "papaparse";
 
 export default function FileUpload() {
   const [file, setFile] = useState(null);
@@ -9,6 +10,7 @@ export default function FileUpload() {
   const [message, setMessage] = useState("");
   const [filename, setFilename] = useState(""); // To store the output filename
   const [mode, setMode] = useState("batch"); //Default is batch, this is for updating which data generation mode we want
+  const [csvContent, setCsvContent] = useState([]); //CSV data for display
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -27,7 +29,7 @@ export default function FileUpload() {
     if (typedSchema) {
       // Prioritize the typed schema if available
       const blob = new Blob([typedSchema], { type: "application/json" });
-      formData.append("file", blob, "typed_schema.json");
+      formData.append("file", blob, "schema.json");
     } else if (file) {
       formData.append("file", file); // Use uploaded file if no typed schema
     } else {
@@ -80,6 +82,19 @@ export default function FileUpload() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link); // Clean up after download
+
+      //Display the CSV content
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const text = e.target.result;
+        Papa.parse(text, {
+          header: true,
+          complete: function (results) {
+            setCsvContent(results.data); //set csv for display
+          },
+        });
+      };
+      reader.readAsText(new Blob([response.data]));
     } catch (error) {
       setMessage("Error downloading file");
       console.error(error);
@@ -152,6 +167,33 @@ export default function FileUpload() {
       </button>
 
       <p className="mt-4 text-red-500">{message}</p>
+      {csvContent.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-xl font-bold mb-4">CSV Content:</h2>
+          <table className="table-auto w-full">
+            <thead>
+              <tr>
+                {Object.keys(csvContent[0]).map((header) => (
+                  <th key={header} className="border px-4 py-2">
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {csvContent.map((row, rowIndex) => (
+                <tr key={rowIndex}>
+                  {Object.values(row).map((value, colIndex) => (
+                    <td key={colIndex} className="border px-4 py-2">
+                      {value}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
