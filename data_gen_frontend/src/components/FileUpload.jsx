@@ -149,15 +149,17 @@ export default function FileUpload() {
         />
       </div>
 
-      <div className="mb-4">
-        <label className="block font-medium">Interval (minutes):</label>
-        <input
-          type="number"
-          value={interval}
-          onChange={(e) => setInterval(e.target.value)}
-          className="border rounded-lg p-2"
-        />
-      </div>
+      {mode == "stream" && (
+        <div className="mb-4">
+          <label className="block font-medium">Interval (minutes):</label>
+          <input
+            type="number"
+            value={interval}
+            onChange={(e) => setInterval(e.target.value)}
+            className="border rounded-lg p-2"
+          />
+        </div>
+      )}
 
       <button
         onClick={handleFileUploadAndDownload}
