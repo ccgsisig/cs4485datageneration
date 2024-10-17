@@ -76,7 +76,7 @@ def continuous_generation(schema, num_records, interval, output_file):
         time.sleep(interval)
 
 @app.post("/generate-csv")
-async def generate_csv(file: UploadFile = File(...), num_records: int = Form(...), interval: float = Form(...), mode: str = Form(...)):
+async def generate_csv(file: UploadFile = File(...), num_records: int = Form(...), interval: float = Form(...), mode: str = Form(...),custom_filename: str = Form(default="output")):
     schema_data = await file.read()
     try:
         schema = json.loads(schema_data)
@@ -88,7 +88,7 @@ async def generate_csv(file: UploadFile = File(...), num_records: int = Form(...
 
     #Naming convention for the generated CSV file
     original_filename = file.filename.split('.')[0]  # Get the base name without extension
-    output_file = f"generated_files/{original_filename}_generated.csv"
+    output_file = f"generated_files/{custom_filename}.csv"
     interval_seconds = interval * 60  #minutes to seconds
 
     if mode == "stream":
