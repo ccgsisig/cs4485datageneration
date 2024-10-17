@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Papa from "papaparse";
 
@@ -6,12 +6,13 @@ export default function FileUpload() {
   const [file, setFile] = useState(null);
   const [typedSchema, setTypedSchema] = useState(""); // For user-typed schema
   const [numRecords, setNumRecords] = useState(10); // Default value for number of records
-  const [interval, setInterval] = useState(1); // Default value for interval (in minutes)
+  const [interval, setIntervalTime] = useState(1); // Default value for interval (in minutes)
   const [message, setMessage] = useState("");
   const [filename, setFilename] = useState(""); // To store the output filename
-  const [mode, setMode] = useState("batch"); //Default is batch, this is for updating which data generation mode we want
-  const [csvContent, setCsvContent] = useState([]); //CSV data for display
-  const [customFilename, setCustomFilename] = useState(""); //Custom filename
+  const [mode, setMode] = useState("batch"); // Default is batch
+  const [csvContent, setCsvContent] = useState([]); // CSV data for display
+  const [customFilename, setCustomFilename] = useState(""); // Custom filename
+  const lastAppendedRef = useRef(""); // To store the last appended content for deduplication
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -28,20 +29,19 @@ export default function FileUpload() {
     const formData = new FormData();
 
     if (typedSchema) {
-      // Prioritize the typed schema if available
       const blob = new Blob([typedSchema], { type: "application/json" });
       formData.append("file", blob, "schema.json");
     } else if (file) {
-      formData.append("file", file); // Use uploaded file if no typed schema
+      formData.append("file", file);
     } else {
       setMessage("Please upload or type a schema.");
       return;
     }
 
-    formData.append("num_records", numRecords); // Send the number of records
-    formData.append("interval", interval); // Send the interval (in minutes)
-    formData.append("mode", mode); // Send the mode (batch or stream)
-    formData.append("custom_filename", customFilename || "output"); // Send the custom filename
+    formData.append("num_records", numRecords);
+    formData.append("interval", interval);
+    formData.append("mode", mode);
+    formData.append("custom_filename", customFilename || "output");
 
     try {
       const response = await axios.post(
@@ -54,9 +54,8 @@ export default function FileUpload() {
         }
       );
       setMessage(response.data.message);
-      setFilename(response.data.output_file); // Set the filename for downloading
+      setFilename(response.data.output_file);
 
-      // Automatically download the generated CSV
       await handleDownloadCSV(response.data.output_file);
     } catch (error) {
       setMessage("Error uploading file");
@@ -77,22 +76,28 @@ export default function FileUpload() {
           responseType: "blob",
         }
       );
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", filename); // Use the filename from the upload
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link); // Clean up after download
+      // const url = window.URL.createObjectURL(new Blob([response.data]));
+      // const link = document.createElement("a");
+      // link.href = url;
+      // link.setAttribute("download", filename); // Use the filename from the upload
+      // document.body.appendChild(link);
+      // link.click();
+      // document.body.removeChild(link); // Clean up after download
 
-      //Display the CSV content
       const reader = new FileReader();
       reader.onload = function (e) {
         const text = e.target.result;
         Papa.parse(text, {
           header: true,
           complete: function (results) {
-            setCsvContent(results.data); //set csv for display
+            const newData = results.data;
+
+            // Check if newData is the same as lastAppendedRef to avoid duplication
+            const newContent = JSON.stringify(newData);
+            if (lastAppendedRef.current !== newContent) {
+              setCsvContent((prev) => [...prev, ...newData]);
+              lastAppendedRef.current = newContent;
+            }
           },
         });
       };
@@ -102,6 +107,36 @@ export default function FileUpload() {
       console.error(error);
     }
   };
+
+  //To downlaod all the CSV content
+  const downloadAllCSV = () => {
+    if (csvContent.length === 0) {
+      setMessage("No CSV content available for download.");
+      return;
+    }
+
+    const csv = Papa.unparse(csvContent); // Convert JSON array back to CSV
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${customFilename || "all_content"}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  //useEffect to call the backend API to get new CSV content and append it to the existing CSV content
+  useEffect(() => {
+    if (mode === "stream" && filename) {
+      const intervalId = setInterval(() => {
+        handleDownloadCSV(filename);
+      }, interval * 60 * 1000); // Interval in milliseconds
+
+      return () => clearInterval(intervalId); // Cleanup the interval on unmount
+    }
+  }, [mode, interval, filename]);
 
   return (
     <div className="container mx-auto p-6">
@@ -151,17 +186,18 @@ export default function FileUpload() {
         />
       </div>
 
-      {mode == "stream" && (
+      {mode === "stream" && (
         <div className="mb-4">
           <label className="block font-medium">Interval (minutes):</label>
           <input
             type="number"
             value={interval}
-            onChange={(e) => setInterval(e.target.value)}
+            onChange={(e) => setIntervalTime(e.target.value)}
             className="border rounded-lg p-2"
           />
         </div>
       )}
+
       <div className="mb-4">
         <label className="block font-medium">Custom Filename:</label>
         <div className="flex items-center">
@@ -180,14 +216,23 @@ export default function FileUpload() {
         onClick={handleFileUploadAndDownload}
         className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
       >
-        Generate and Download CSV
+        Generate
       </button>
 
       <p className="mt-4 text-red-500">{message}</p>
-      {/* section to display the generated csv */}
+
       {csvContent.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-xl font-bold mb-4">CSV Content:</h2>
+          <div className="flex justify-between">
+            <h2 className="text-xl font-bold mb-4">CSV Content:</h2>
+            <button
+              onClick={downloadAllCSV}
+              className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600 mb-4"
+            >
+              Download All CSV Content
+            </button>
+          </div>
+
           <table className="table-auto w-full">
             <thead>
               <tr>
