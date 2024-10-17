@@ -11,6 +11,7 @@ export default function FileUpload() {
   const [filename, setFilename] = useState(""); // To store the output filename
   const [mode, setMode] = useState("batch"); //Default is batch, this is for updating which data generation mode we want
   const [csvContent, setCsvContent] = useState([]); //CSV data for display
+  const [customFilename, setCustomFilename] = useState(""); //Custom filename
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -40,6 +41,7 @@ export default function FileUpload() {
     formData.append("num_records", numRecords); // Send the number of records
     formData.append("interval", interval); // Send the interval (in minutes)
     formData.append("mode", mode); // Send the mode (batch or stream)
+    formData.append("custom_filename", customFilename || "output"); // Send the custom filename
 
     try {
       const response = await axios.post(
@@ -160,6 +162,19 @@ export default function FileUpload() {
           />
         </div>
       )}
+      <div className="mb-4">
+        <label className="block font-medium">Custom Filename:</label>
+        <div className="flex items-center">
+          <input
+            type="text"
+            value={customFilename}
+            onChange={(e) => setCustomFilename(e.target.value)}
+            className="border rounded-lg p-2"
+            placeholder="Enter a custom filename"
+          />
+          <div className="ml-2">.csv</div>
+        </div>
+      </div>
 
       <button
         onClick={handleFileUploadAndDownload}
@@ -169,6 +184,7 @@ export default function FileUpload() {
       </button>
 
       <p className="mt-4 text-red-500">{message}</p>
+      {/* section to display the generated csv */}
       {csvContent.length > 0 && (
         <div className="mt-6">
           <h2 className="text-xl font-bold mb-4">CSV Content:</h2>
