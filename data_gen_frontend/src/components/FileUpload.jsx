@@ -9,6 +9,8 @@ export default function FileUpload() {
   const [interval, setIntervalTime] = useState(1); // Default value for interval (in minutes)
   const [message, setMessage] = useState("");
   const [filename, setFilename] = useState(""); // To store the output filename
+
+  
   const [mode, setMode] = useState("batch"); // Default is batch
   const [csvContent, setCsvContent] = useState([]); // CSV data for display
   const [customFilename, setCustomFilename] = useState(""); // Custom filename
@@ -37,6 +39,7 @@ export default function FileUpload() {
       setMessage("Please upload or type a schema.");
       return;
     }
+
 
     formData.append("num_records", numRecords);
     formData.append("interval", interval);
@@ -186,17 +189,20 @@ export default function FileUpload() {
         />
       </div>
 
+
       {mode === "stream" && (
         <div className="mb-4">
           <label className="block font-medium">Interval (minutes):</label>
           <input
             type="number"
             value={interval}
+
             onChange={(e) => setIntervalTime(e.target.value)}
             className="border rounded-lg p-2"
           />
         </div>
       )}
+
 
       <div className="mb-4">
         <label className="block font-medium">Custom Filename:</label>
@@ -220,6 +226,7 @@ export default function FileUpload() {
       </button>
 
       <p className="mt-4 text-red-500">{message}</p>
+      {/* section to display the generated csv */}
 
       {csvContent.length > 0 && (
         <div className="mt-6">
