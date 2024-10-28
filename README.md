@@ -34,6 +34,8 @@ The goal of this project is to design and implement a data pipeline that generat
   - The system will provide basic error logging and reporting capabilities.
   - Status: *Pending Complete*
 
+### Integration Guide
+- work in progress :3 
 
 ### Starting Up Project
 To start up backend (FastAPI): 
