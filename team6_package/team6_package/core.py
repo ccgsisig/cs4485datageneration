@@ -2,6 +2,7 @@ from faker import Faker
 import random
 import csv
 import json
+import argparse
 import io  # For in-memory CSV handling
 
 fake = Faker()
@@ -171,3 +172,17 @@ def load_schema(schema_path):
     """Load the JSON schema from a file."""
     with open(schema_path, 'r') as file:
         return json.load(file)
+
+def main():
+    parser = argparse.ArgumentParser(description="Generate fake data from a JSON schema and save to CSV.")
+    parser.add_argument('schema', type=str, help='Path to the JSON schema file')
+    parser.add_argument('output', type=str, help='The output CSV file name')
+    parser.add_argument('-n', '--num-records', type=int, default=100, help='Number of records to generate')
+    args = parser.parse_args()
+    try:
+        schema = load_schema(args.schema)
+        data = generate_data(schema, args.num_records)
+        save_to_csv(data, args.output)
+        print(f"Data successfully saved to {args.output}")
+    except Exception as e:
+        print(f"Error: {e}")

@@ -5,7 +5,7 @@ Install the dependencies using: 'pip install -r requirements.txt'
 Install the package using the following command: 'pip install .'
 
 Command Line Usage:
-team6_package <schema.json> <output.csv> --num-records <number_of_records>
+team6_package <schema.json file_path> <output.csv desired_path> --num-records <number_of_records>
 EXAMPLE: team6_package schema.json data.csv --num-records 200
 
 --num-records is optional and the default value is 100.
