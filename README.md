@@ -35,7 +35,9 @@ The goal of this project is to design and implement a data pipeline that generat
   - Status: *Pending Complete*
 
 ### Integration Guide
-- work in progress :3 
+- We made a Python module that includes fake generated data.
+- The other teams need to contact us if they are ready to integrate with our use case.
+- Once contacted, we provide the necessary files to the team with the guide of how to integrate with our files.
 
 ### Starting Up Project
 To start up backend (FastAPI): 
