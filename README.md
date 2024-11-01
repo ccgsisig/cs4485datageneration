@@ -3,11 +3,11 @@
 ### Team Members
 
 - Sisi Aarukapalli (SXA200073@utdallas.edu)
-- Aarian Ahsan ()
-- Riyasat Rashid ()
-- Edgar Lara Sanchez ()
-- Korbin Schulz ()
-- Luigi Victorelli ()
+- Aarian Ahsan (ATA200003@utdallas.edu)
+- Riyasat Rashid (RXR190059@utdallas.edu)
+- Edgar Lara Sanchez (EXL1900014@utdallas.edu)
+- Korbin Schulz (KKS200002@utdallas.edu)
+- Luigi Victorelli (LBV210000@utdallas.edu)
 
 ### Summary
 The goal of this project is to design and implement a data pipeline that generates data and stores it in CSV format for analysis and processing. It will involve the generation, storage, and transfer of data using pipelines, as well as exclude more advanced features like database sharding but may use basic data management techniques. This project aims to showcase the following items: 
