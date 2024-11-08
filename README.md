@@ -39,6 +39,11 @@ The goal of this project is to design and implement a data pipeline that generat
 - The other teams need to contact us if they are ready to integrate with our use case.
 - Once contacted, we provide the necessary files to the team with the guide of how to integrate with our files.
 
+### Grand Plan
+- So far, we plan on adding complexities to the Python Module (TBD)
+- Update HLD and relevant documents to reflect most recent updates
+- Continue planning 5 week plan
+
 ### Starting Up Project
 To start up backend (FastAPI): 
   - Start up venv 
