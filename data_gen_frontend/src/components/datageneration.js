@@ -215,9 +215,11 @@ export default function DataGeneration() {
 
       <button
         onClick={handleFileUploadAndDownload}
-        className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600"
+        className="relative flex h-9 w-full items-center justify-center px-4 before:absolute before:inset-0 before:rounded-full before:bg-electricblue dark:before:bg-blue-950 before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 sm:w-max"
       >
-        Generate
+        <span className="relative text-sm font-semibold text-background">
+          Generate
+        </span>
       </button>
 
       <p className="mt-4 text-red-500">{message}</p>
@@ -228,9 +230,11 @@ export default function DataGeneration() {
             <h2 className="text-xl font-bold mb-4">CSV Content:</h2>
             <button
               onClick={downloadAllCSV}
-              className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600 mb-4"
+              className="relative flex items-center justify-center px-4 py-2 bg-blue-500 rounded-lg mb-4 before:absolute before:inset-0 before:rounded-full before:bg-electricblue before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95"
             >
-              Download All CSV Content
+              <span className="relative text-sm font-semibold text-background">
+                Download All CSV Content
+              </span>
             </button>
           </div>
 
@@ -261,4 +265,3 @@ export default function DataGeneration() {
     </div>
   );
 }
-
