@@ -3,3 +3,5 @@ uvicorn
 jinja2
 python-multipart
 faker
+kafka-python
+aiokafka

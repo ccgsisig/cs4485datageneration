@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Papa from "papaparse";
 
-export default function FileUpload() {
+export default function DataGeneration() {
   const [file, setFile] = useState(null);
   const [typedSchema, setTypedSchema] = useState(""); // For user-typed schema
   const [numRecords, setNumRecords] = useState(10); // Default value for number of records
@@ -10,7 +10,6 @@ export default function FileUpload() {
   const [message, setMessage] = useState("");
   const [filename, setFilename] = useState(""); // To store the output filename
 
-  
   const [mode, setMode] = useState("batch"); // Default is batch
   const [csvContent, setCsvContent] = useState([]); // CSV data for display
   const [customFilename, setCustomFilename] = useState(""); // Custom filename
@@ -39,7 +38,6 @@ export default function FileUpload() {
       setMessage("Please upload or type a schema.");
       return;
     }
-
 
     formData.append("num_records", numRecords);
     formData.append("interval", interval);
@@ -142,7 +140,7 @@ export default function FileUpload() {
   }, [mode, interval, filename]);
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="bg-background h-full text-foreground container mx-auto p-6 overflow-y-auto">
       <h1 className="text-2xl font-bold mb-4">
         Upload JSON or Type Schema and Generate CSV
       </h1>
@@ -160,7 +158,7 @@ export default function FileUpload() {
         <select
           value={mode}
           onChange={(e) => setMode(e.target.value)}
-          className="border rounded-lg p-2"
+          className="border text-background rounded-lg p-2"
         >
           <option value="batch">Batch</option>
           <option value="stream">Stream</option>
@@ -174,7 +172,7 @@ export default function FileUpload() {
         <textarea
           value={typedSchema}
           onChange={(e) => setTypedSchema(e.target.value)}
-          className="w-full h-40 border rounded-lg p-2"
+          className="w-full h-40 border text-background rounded-lg p-2"
           placeholder="Enter your JSON schema here"
         />
       </div>
@@ -185,10 +183,9 @@ export default function FileUpload() {
           type="number"
           value={numRecords}
           onChange={(e) => setNumRecords(e.target.value)}
-          className="border rounded-lg p-2"
+          className="border text-background rounded-lg p-2"
         />
       </div>
-
 
       {mode === "stream" && (
         <div className="mb-4">
@@ -196,13 +193,11 @@ export default function FileUpload() {
           <input
             type="number"
             value={interval}
-
             onChange={(e) => setIntervalTime(e.target.value)}
             className="border rounded-lg p-2"
           />
         </div>
       )}
-
 
       <div className="mb-4">
         <label className="block font-medium">Custom Filename:</label>
@@ -211,7 +206,7 @@ export default function FileUpload() {
             type="text"
             value={customFilename}
             onChange={(e) => setCustomFilename(e.target.value)}
-            className="border rounded-lg p-2"
+            className="border text-background rounded-lg p-2"
             placeholder="Enter a custom filename"
           />
           <div className="ml-2">.csv</div>
@@ -226,7 +221,6 @@ export default function FileUpload() {
       </button>
 
       <p className="mt-4 text-red-500">{message}</p>
-      {/* section to display the generated csv */}
 
       {csvContent.length > 0 && (
         <div className="mt-6">
@@ -267,3 +261,4 @@ export default function FileUpload() {
     </div>
   );
 }
+
