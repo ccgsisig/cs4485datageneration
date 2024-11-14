@@ -6,6 +6,7 @@ import { NavLink } from "react-router-dom";
 import { ChevronLast, ChevronFirst } from "lucide-react";
 import Usecase1 from "../components/usecase1";
 import DataGeneration from "../components/datageneration";
+import DataIngestion from "../components/T2DataIngestion/T2DataIngestion.jsx";
 
 const SidebarContext = createContext();
 
@@ -46,7 +47,7 @@ export default function Dashboard() {
 
   const sidebarItems = [
     { label: "Exploratory Data Analysis", component: <Usecase1 /> },
-    { label: "Data Ingestion" },
+    { label: "Data Ingestion", component: <DataIngestion /> },
     { label: "Dashboarding" },
     { label: "Data Pipelining" },
     { label: "KPI Formulas" },
