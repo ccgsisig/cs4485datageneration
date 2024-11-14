@@ -4,29 +4,36 @@ Navigate to the directory containing setup.py
 Install the dependencies using: 'pip install -r requirements.txt'
 Install the package using the following command: 'pip install .'
 
+_________________________________________________________________________________________________________________
+
 Command Line Usage:
 team6_package <schema.json file_path> <output.csv desired_path> --num-records <number_of_records>
 EXAMPLE: team6_package schema.json data.csv --num-records 200
 
 --num-records is optional and the default value is 100.
 
+_________________________________________________________________________________________________________________
 
 Using the Package in Python Code
 Example:
 
-	from json_to_csv import generate_data, save_to_csv, load_schema
+	from team6_package import generate_data, save_to_csv, load_schema
 
-	# Load schema from JSON file
+	# Load schema from a JSON file
 	schema = load_schema('schema.json')
 
 	# Generate data based on the schema
-	data = generate_data(schema, num_records=200)
+	data = generate_data(schema, num_records=10)
 
-	# Save the generated data to a CSV file
-	save_to_csv(data, 'data.csv')
+	# Get the CSV content as an in-memory StringIO object
+	csv_file = save_to_csv(data)
+	
+	# Use the CSV content within the same code
+	print(csv_file.read())  # Print the CSV content
 
 save_to_csv does not need a file path. The default is none and if there is no given file path then the function returns a csv file-like object.
 
+_________________________________________________________________________________________________________________
 
 JSON Schema Example:
 {
@@ -41,8 +48,30 @@ JSON Schema Example:
 }
 "<desired_name>": "<function_name>"
 
+_________________________________________________________________________________________________________________
 
+Example for using consume_messages_from_kafka function:
 
+		from team6_package.core import consume_messages_from_kafka
+
+		def process_message(message):
+    		# Custom processing of the message
+    		print(f"Processing message: {message}")
+
+		def main():
+   		kafka_topic = 'team6_topic'
+    		bootstrap_servers = 'localhost:29092'  # Adjust if needed
+
+    		# Consume messages using the package function
+    		consume_messages_from_kafka(
+        		on_message=process_message,
+        		consumer_timeout_ms=10000  # Wait for 10 seconds if no messages are received
+    		)
+
+		if __name__ == "__main__":
+    		    main()
+ 
+_________________________________________________________________________________________________________________
 
 Currently Supported functions:
     'uuid': lambda: fake.uuid4(),  # UUID
@@ -50,7 +79,7 @@ Currently Supported functions:
     'integer': lambda: random.randint(1, 999999),  # General integer
     'iso8601': lambda: fake.iso8601(),  # ISO8601 timestamp
     'float': lambda: round(random.uniform(-180.0, 180.0), 6),  # General float
-    'datetime': lambda: fake.date_time_between(start_date='-2y', end_date='now'),
+    'datetime': lambda: datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
     'nullable_datetime': lambda: fake.date_time_between(start_date='-2y', end_date='now') if random.choice([True, False]) else None,
     'status': lambda: fake.word(ext_word_list=["active", "inactive", "pending"]),
     'name': lambda: fake.name(),
@@ -144,4 +173,23 @@ Currently Supported functions:
     'location_latitude': lambda: round(fake.latitude(), 6),
     'location_longitude': lambda: round(fake.longitude(), 6),
     'uptime': lambda: f"{random.randint(0, 99)}d {random.randint(0, 23)}h {random.randint(0, 59)}m {random.randint(0, 59)}s",
-    'health': lambda: fake.word(ext_word_list=["GOOD", "BAD", "MARGINAL"])
+    'health': lambda: fake.word(ext_word_list=["GOOD", "BAD", "MARGINAL"]),
+
+    # Team 9 stuff
+    'sent_bytes': lambda: int(random.uniform(0.1, 0.4) * (1073741824 / random.randint(23,25))),
+    'received_bytes': lambda: int(random.uniform(0.1, 0.4) * 1073741824),
+    'cpu_percent': lambda: round(random.uniform(0.6, 0.9), 2),
+    'mem_used_bytes': lambda: int(536870912 * random.uniform(0.7, 0.99)),
+    'mem_total': lambda: 536870912,
+    'disk_percent': lambda: round(random.uniform(0.6, 0.9), 2),
+    'disk_total': lambda: 536870912,
+    'machine_sent_bytes': lambda: int(536870912 * random.uniform(0.1, 0.7) / 15),
+    'machine_received_bytes': lambda: int(536870912 * random.uniform(0.1, 0.7)),
+    'radio_connected': lambda: random.randint(50, 100),
+    'devices_registered': lambda: random.randint(500, 700),
+    'devices_connected': lambda: random.randint(400, 800),
+    'ue_pdn_connections_success': lambda: random.randint(100, 300),
+    'ue_pdn_connections_released': lambda: random.randint(100, 300),
+    'link_success_rate_5g': lambda: round(random.uniform(0.8, 1), 2),
+    'allocate_ip_success_5g': lambda: random.randint(100, 300),
+    'release_ip_success_5g': lambda: random.randint(100, 300)
