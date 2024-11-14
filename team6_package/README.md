@@ -55,18 +55,15 @@ Example for using consume_messages_from_kafka function:
 		from team6_package.core import consume_messages_from_kafka
 
 		def process_message(message):
-    		# Custom processing of the message
-    		print(f"Processing message: {message}")
+    			# Custom processing of the message
+    			print(f"Processing message: {message}")
 
 		def main():
-   		kafka_topic = 'team6_topic'
-    		bootstrap_servers = 'localhost:29092'  # Adjust if needed
-
-    		# Consume messages using the package function
-    		consume_messages_from_kafka(
-        		on_message=process_message,
-        		consumer_timeout_ms=10000  # Wait for 10 seconds if no messages are received
-    		)
+    			# Consume messages using the package function
+    			consume_messages_from_kafka(
+        			on_message=process_message,
+        			consumer_timeout_ms=10000  # Wait for 10 seconds if no messages are received
+    			)
 
 		if __name__ == "__main__":
     		    main()
