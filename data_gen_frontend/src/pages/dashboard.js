@@ -7,6 +7,8 @@ import { ChevronLast, ChevronFirst } from "lucide-react";
 import Usecase1 from "../components/usecase1";
 import DataGeneration from "../components/datageneration";
 import DataIngestion from "../components/T2DataIngestion/T2DataIngestion.jsx";
+import FaultMainPage from "../components/faultmanagement/faultmainpage";
+import FaultSide from "../components/faultmanagement/faultside";
 
 const SidebarContext = createContext();
 
@@ -25,7 +27,7 @@ export function SidebarItem({ to, label, onClick }) {
         onClick={onClick} // Call the onClick function when the item is clicked
       >
         <span
-          className={`overflow-hidden transition-all ${
+          className={`overflow-y-auto transition-all ${
             expanded ? "w-52 ml-3" : "w-0"
           }`}
         >
@@ -53,7 +55,7 @@ export default function Dashboard() {
     { label: "KPI Formulas" },
     { label: "Data Generation", component: <DataGeneration /> },
     { label: "Security Management" },
-    { label: "Fault Management" },
+    { label: "Fault Management", component: <FaultMainPage /> },
     { label: "Performance Metrics" },
   ];
 
@@ -102,7 +104,7 @@ export default function Dashboard() {
             </nav>
           </aside>
         </div>
-        <div className="bg-background h-[calc(100vh-4.5rem)] flex-1 overflow-hidden">
+        <div className="bg-background h-[calc(100vh-4.5rem)] flex-1 overflow-y-auto">
           {activeComponent || <Usecase1 />} {/* Render the active component */}
         </div>
       </div>
