@@ -7,7 +7,6 @@ import { ChevronLast, ChevronFirst } from "lucide-react";
 import Usecase1 from "../components/usecase1";
 import DataGeneration from "../components/datageneration";
 import DataIngestion from "../components/T2DataIngestion/T2DataIngestion.jsx";
-import FaultMainPage from "../components/faultmanagement/faultmainpage";
 
 const SidebarContext = createContext();
 
@@ -54,7 +53,7 @@ export default function Dashboard() {
     { label: "KPI Formulas" },
     { label: "Data Generation", component: <DataGeneration /> },
     { label: "Security Management" },
-    { label: "Fault Management", component: <FaultMainPage /> },
+    { label: "Fault Management" },
     { label: "Performance Metrics" },
   ];
 

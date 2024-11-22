@@ -5,6 +5,8 @@ import csv
 import random
 import json
 import os
+import asyncio
+from aiokafka import AIOKafkaProducer
 from faker import Faker
 
 fake = Faker()
@@ -32,6 +34,24 @@ fake_functions = {
     'address': lambda: fake.address(),
     'phone': lambda: fake.phone_number()
 }
+
+# Kafka Producer configuration
+KAFKA_BROKER = "localhost:9092"
+KAFKA_TOPIC = "datagen"
+producer = None  # Declare producer at the top level
+
+async def startup_event():
+    global producer
+    producer = AIOKafkaProducer(bootstrap_servers=KAFKA_BROKER)
+    await producer.start()
+
+async def shutdown_event():
+    global producer
+    await producer.stop()
+
+# FastAPI event handlers for startup and shutdown
+app.add_event_handler("startup", startup_event)
+app.add_event_handler("shutdown", shutdown_event)
 
 # Function to generate data based on the JSON schema
 def generate_data(schema, num_records):
@@ -67,6 +87,24 @@ def save_to_csv(data, output_file):
     else:
         raise ValueError("No data to save.")
 
+async def send_to_kafka(data):
+    try:
+        print("Sending data to Kafka:", data)  # Log data being sent
+        await producer.send_and_wait(KAFKA_TOPIC, value=json.dumps(data).encode('utf-8'))
+        print("Data sent successfully")
+    except Exception as e:
+        print(f"Error sending to Kafka: {e}")  # Log error
+
+async def continuous_generation(schema, num_records, interval, output_file):
+    try:
+        while True:
+            data = generate_data(schema, num_records)
+            save_to_csv(data, output_file)
+            await send_to_kafka(data)  # Send data to Kafka
+            await asyncio.sleep(interval)  # Use asyncio.sleep to avoid blocking
+    except Exception as e:
+        print(f"Error during data generation: {e}")
+
 @app.post("/generate-csv")
 async def generate_csv(file: UploadFile = File(...), num_records: int = Form(...), interval: float = Form(...), mode: str = Form(...), custom_filename: str = Form(default="output")):
     schema_data = await file.read()
@@ -93,6 +131,7 @@ async def generate_csv(file: UploadFile = File(...), num_records: int = Form(...
     elif mode == "batch":
         data = generate_data(schema, num_records)  # Generate data immediately
         save_to_csv(data, output_file)
+        await send_to_kafka(data)  # Send data to Kafka
         return {
             "message": "CSV generated successfully!",
             "output_file": output_file.split('/')[-1]  # Only send the filename
