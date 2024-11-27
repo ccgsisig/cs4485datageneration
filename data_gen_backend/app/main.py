@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import csv
@@ -8,9 +8,16 @@ import os
 import asyncio
 from faker import Faker
 
+# Import the factory function to create introspectors
+from introspectors.factory import create_introspector
 fake = Faker()
 
 app = FastAPI()
+
+# Configuration
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CSV_DIRECTORY = os.path.join(BASE_DIR, "generated_files")
+os.makedirs(CSV_DIRECTORY, exist_ok=True)  # Ensure the directory exists
 
 # CORS middleware to allow requests from the React app
 app.add_middleware(
@@ -82,6 +89,13 @@ async def continuous_generation(schema, num_records, interval, output_file):
     except Exception as e:
         print(f"Error during data generation: {e}")
 
+# Initialize Introspector using the factory function
+try:
+    inspector = create_introspector('csv', directory_path=CSV_DIRECTORY)
+except ValueError as ve:
+    print(f"Introspector initialization error: {ve}")
+    inspector = None  # Handle initialization failure if necessary
+
 @app.post("/generate-csv")
 async def generate_csv(file: UploadFile = File(...), num_records: int = Form(...), interval: float = Form(...), mode: str = Form(...), custom_filename: str = Form(default="output")):
     schema_data = await file.read()
@@ -95,7 +109,7 @@ async def generate_csv(file: UploadFile = File(...), num_records: int = Form(...
 
     # Naming convention for the generated CSV file
     original_filename = file.filename.split('.')[0]  # Get the base name without extension
-    output_file = f"generated_files/{custom_filename}.csv"
+    output_file = os.path.join(CSV_DIRECTORY, f"{custom_filename}.csv")
     interval_seconds = interval * 60  # minutes to seconds
 
     if mode == "stream":
@@ -117,10 +131,38 @@ async def generate_csv(file: UploadFile = File(...), num_records: int = Form(...
 
 @app.get("/download_csv/")
 async def download_csv(filename: str):
-    file_path = f"generated_files/{filename}" 
+    file_path = os.path.join(CSV_DIRECTORY, filename) 
     if os.path.exists(file_path):
         return FileResponse(file_path, media_type='text/csv', filename=filename)
     return {"error": "File not found."}
+
+# Introspection Endpoints
+@app.get("/introspect/tables")
+async def get_csv_tables():
+    if inspector is None:
+        raise HTTPException(status_code=500, detail="Introspector not initialized.")
+    try:
+        tables = inspector.get_table_names()
+        return {"tables": tables}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/introspect/metadata/{table_name}")
+async def get_table_metadata(table_name: str):
+    if inspector is None:
+        raise HTTPException(status_code=500, detail="Introspector not initialized.")
+    try:
+        metadata = inspector.get_table_metadata(table_name)
+        return {
+            "name": metadata.name,
+            "row_count": metadata.row_count,
+            "columns": metadata.columns,
+            "file_path": metadata.file_path
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
