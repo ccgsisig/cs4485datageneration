@@ -1,4 +1,4 @@
-# CS 4485 AG Team 7 Repository - Data Generation
+# CS 4485 AG Team 6 Repository - Data Generation
 
 ### Team Members
 
