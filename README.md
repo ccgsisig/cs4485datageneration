@@ -54,6 +54,10 @@ To start up frontend (Vite (react)):
   - 'npm install'
   - 'npm run dev'
 
+### Documentation
+  - High Level Design: https://docs.google.com/document/d/1I9xiReIMSBQUvKsAom6fse1gn3cbiVGCZ1v1bwx6C2U/edit?usp=sharing
+  - Integration Guide: https://docs.google.com/document/d/1I9xiReIMSBQUvKsAom6fse1gn3cbiVGCZ1v1bwx6C2U/edit?usp=sharing
+
 Backend: http://localhost:8000 (API endpoint)
 
 Frontend: http://localhost:5173 (React app)
